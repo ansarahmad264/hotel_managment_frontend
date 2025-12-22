@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/auth.slice";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 
 const navItems = [
   { label: "Home", to: "/dashboard/home", icon: "home" },
@@ -19,6 +21,7 @@ const iconPaths = {
 const DashboardLayout = () => {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
+  const [loading, setLoading] = useState(false);
 
   console.log("userrr---", user);
   // navigate
@@ -57,7 +60,9 @@ const DashboardLayout = () => {
 
   // handle logout
   const handleLogout = async () => {
+    setLoading(true);
     await logout();
+    setLoading(false);
     navigate("/", { replace: true });
   };
 
@@ -232,48 +237,16 @@ const DashboardLayout = () => {
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm sm:flex">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    className="h-4 w-4 text-slate-400"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="m21 21-3.5-3.5M5 11a6 6 0 1 1 12 0 6 6 0 0 1-12 0Z"
-                    />
-                  </svg>
-                  <input
-                    type="search"
-                    placeholder="Search anything"
-                    className="bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
-                  />
-                </div>
-
-                <button
-                  onClick={handleLogout}
-                  className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-sky-500"
-                >
-                  <span>Logout</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    className="h-4 w-4"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 17.5 21 12l-6-5.5M21 12H9M13 19H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6"
-                    />
-                  </svg>
-                </button>
+                <Button variant="outline" onClick={handleLogout}>
+                  {loading ? (
+                    "Logging out..."
+                  ) : (
+                    <>
+                      <span>Logout</span>
+                      <LogOut />
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
           </header>

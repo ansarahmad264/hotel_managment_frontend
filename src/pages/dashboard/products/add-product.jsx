@@ -28,9 +28,9 @@ const AddProduct = () => {
   } = useForm({
     resolver: zodResolver(AddProductSchema),
     defaultValues: {
-      name: "Truffle Pasta",
-      description: "  Short summary for guests and couriers.",
-      price: 12.5,
+      name: "",
+      description: "",
+      price: 0,
       image: undefined,
     },
   });
