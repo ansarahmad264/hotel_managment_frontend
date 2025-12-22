@@ -183,7 +183,7 @@ const AddProduct = () => {
             </label>
             <input
               type="file"
-              accept="image/jpeg,image/jpg,image/png,image/webp"
+              accept="image/*" //  This allows any image type (png, jpg, webp, gif, avif, etc.)
               key={fileInputKey}
               onChange={handleImageChange}
               className="w-full cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm transition file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-slate-700 hover:border-sky-300 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
