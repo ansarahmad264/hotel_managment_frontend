@@ -55,8 +55,9 @@ const DashboardLayout = () => {
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
-  const handleLogout = () => {
-    logout();
+  // handle logout
+  const handleLogout = async () => {
+    await logout();
     navigate("/", { replace: true });
   };
 

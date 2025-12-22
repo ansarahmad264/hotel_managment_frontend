@@ -48,7 +48,11 @@ const SignInPage = () => {
         toast.success(response.message || "Login successful!");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Login failed");
+      console.log("error.errors?.[0]00", error.errors?.[0]);
+
+      toast.error(
+        error.response?.data?.message || error.errors?.[0] || "Login failed"
+      );
     } finally {
       setLoading(false);
     }

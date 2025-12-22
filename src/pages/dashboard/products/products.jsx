@@ -369,9 +369,10 @@ const Products = () => {
                 {editSubmitting ? "Updating..." : "Update Product"}
               </Button>
               <Button
-                variant="destructive"
+                variant="outline"
                 type="button"
                 disabled={editSubmitting}
+                onClick={() => setEditDialog(null)}
               >
                 Cancel
               </Button>
