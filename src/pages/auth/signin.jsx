@@ -46,6 +46,8 @@ const SignInPage = () => {
         console.log("Setting user:", response?.data?.restaurant);
         setUser(response?.data?.restaurant);
         toast.success(response.message || "Login successful!");
+      } else {
+        toast.error(response?.message || "Login failed");
       }
     } catch (error) {
       console.log("error.errors?.[0]00", error.errors?.[0]);
@@ -225,16 +227,7 @@ const SignInPage = () => {
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
-                  <label className="flex items-center gap-2 text-slate-300">
-                    <input
-                      type="checkbox"
-                      id="remember"
-                      onChange={handleChange}
-                      checked={formData.remember}
-                      className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-emerald-500 focus:ring-emerald-500"
-                    />
-                    <span>Keep me logged in</span>
-                  </label>
+                  <label className="flex items-center gap-2 text-slate-300"></label>
 
                   <Link
                     className="text-xs font-medium text-emerald-400 hover:text-emerald-300"
