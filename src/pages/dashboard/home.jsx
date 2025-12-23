@@ -1,4 +1,5 @@
 import { shortText } from "@/lib/utils";
+import { GetOrdersApi } from "@/services/orders/orders.services";
 import { GetProductsApi } from "@/services/product/product.services";
 import { useAuthStore } from "@/store/auth.slice";
 import React from "react";
@@ -7,12 +8,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-// Stats specifically for Orders and Revenue
-const stats = [
-  { title: "Total Orders", value: "182", change: "+14% vs yesterday" },
-  { title: "Total Products", value: "12,480", change: "Daily run rate" },
-];
-
 const Home = () => {
   // navigate
   const navigate = useNavigate();
@@ -20,6 +15,8 @@ const Home = () => {
   const [loading, setLoading] = useState(false);
   // products
   const [products, setProducts] = useState([]);
+  // orders
+  const [orders, setOrders] = useState([]);
   // user
   const user = useAuthStore((state) => state.user);
 
@@ -39,8 +36,38 @@ const Home = () => {
         setLoading(false);
       }
     };
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const response = await GetOrdersApi(user.id, 5);
+        if (response?.success && response?.data?.length > 0) {
+          setOrders(response?.data);
+        } else {
+          setOrders([]);
+        }
+      } catch (error) {
+        toast.error(error?.message || "Failed to fetch orders");
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchProducts();
+    fetchOrders();
   }, [user.id]);
+
+  // Stats specifically for Orders and Revenue
+  const stats = [
+    {
+      title: "Total Orders",
+      value: orders?.length || 0,
+      change: "+14% vs yesterday",
+    },
+    {
+      title: "Total Products",
+      value: products?.length || 0,
+      change: "Daily run rate",
+    },
+  ];
 
   return (
     <div className="space-y-8">
