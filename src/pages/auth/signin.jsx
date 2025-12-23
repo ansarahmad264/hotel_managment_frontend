@@ -113,10 +113,6 @@ const SignInPage = () => {
               <dl className="mt-8 space-y-4 text-sm text-slate-200">
                 {[
                   {
-                    title: "Real-time Orders",
-                    desc: "Receive and process orders instantly.",
-                  },
-                  {
                     title: "Easy Menu Control",
                     desc: "Edit menu anytime with a click.",
                   },
