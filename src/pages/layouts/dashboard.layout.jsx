@@ -194,7 +194,7 @@ const DashboardLayout = () => {
             </div>
             <button
               onClick={handleLogout}
-              className="inline-flex  w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-sky-500"
+              className="cursor-pointer inline-flex  w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-sky-600 focus-visible:ring-2 focus-visible:ring-sky-500"
             >
               Logout
             </button>
@@ -237,7 +237,10 @@ const DashboardLayout = () => {
               </div>
 
               <div className="flex items-center gap-3">
-                <Button variant="outline" onClick={handleLogout}>
+                <Button
+                  className="cursor-pointer bg-sky-600 text-white hover:bg-sky-600"
+                  onClick={handleLogout}
+                >
                   {loading ? (
                     "Logging out..."
                   ) : (

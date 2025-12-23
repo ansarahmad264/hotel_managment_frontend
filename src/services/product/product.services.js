@@ -13,9 +13,13 @@ export const AddProductApi = async (id, form) => {
 };
 
 // Add Product Api Service
-export const GetProductsApi = async (restauarantId) => {
+export const GetProductsApi = async (restauarantId, limit) => {
   try {
-    const response = await apiClient.get(`/products/${restauarantId}`);
+    let endpoint = `/products/${restauarantId}`;
+    if (limit) {
+      endpoint += `?limit=${limit}`;
+    }
+    const response = await apiClient.get(endpoint);
     return response.data;
   } catch (error) {
     return error.response ? error.response.data : null;

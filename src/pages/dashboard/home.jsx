@@ -27,7 +27,7 @@ const Home = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const response = await GetProductsApi(user.id);
+        const response = await GetProductsApi(user.id, 5);
         if (response?.success && response?.data?.length > 0) {
           setProducts(response?.data);
         } else {

@@ -6,6 +6,7 @@ import AddProductSchema from "./validation";
 import { AddProductApi } from "@/services/product/product.services";
 import { useAuthStore } from "@/store/auth.slice";
 import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
 
 const AddProduct = () => {
   // navigate
@@ -30,7 +31,7 @@ const AddProduct = () => {
     defaultValues: {
       name: "",
       description: "",
-      price: 0,
+      price: "",
       image: undefined,
     },
   });
@@ -50,7 +51,7 @@ const AddProduct = () => {
   const handleReset = () => {
     reset();
     setPreview(null);
-    setFileInputKey((key) => key + 1); // forces file input to reset without touching refs
+    setFileInputKey((key) => key + 1);
   };
 
   console.log("user--", user);
@@ -82,6 +83,7 @@ const AddProduct = () => {
         toast.success(response?.message, {
           description: `${values.name} ($${values.price})`,
         });
+        handleReset();
       }
     } catch (error) {
       console.log("error", error);
@@ -110,8 +112,9 @@ const AddProduct = () => {
           <button
             type="button"
             onClick={() => navigate("/dashboard/products")}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-sky-500"
+            className="cursor-pointer inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-sky-600  px-3 py-2 text-sm font-semibold  transition text-white focus-visible:ring-2 focus-visible:ring-sky-500"
           >
+            <ArrowLeft className="h-4 w-4" />
             Back to products
           </button>
           <button
@@ -149,7 +152,7 @@ const AddProduct = () => {
               <input
                 type="number"
                 step="0.01"
-                min="0"
+                min="1"
                 placeholder="12.50"
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm transition focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100"
                 {...register("price")}

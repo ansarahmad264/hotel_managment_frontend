@@ -226,17 +226,6 @@ const SignInPage = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-sm">
-                  <label className="flex items-center gap-2 text-slate-300"></label>
-
-                  <Link
-                    className="text-xs font-medium text-emerald-400 hover:text-emerald-300"
-                    to="#"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-
                 <button
                   type="submit"
                   className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-400 focus:ring-2 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-70"
