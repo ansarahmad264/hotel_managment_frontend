@@ -9,8 +9,8 @@ import { toast } from "sonner";
 
 // Stats specifically for Orders and Revenue
 const stats = [
-  { title: "Today's Orders", value: "€182", change: "+14% vs yesterday" },
-  { title: "Total Products", value: "€12,480", change: "Daily run rate" },
+  { title: "Total Orders", value: "182", change: "+14% vs yesterday" },
+  { title: "Total Products", value: "12,480", change: "Daily run rate" },
 ];
 
 const Home = () => {

@@ -71,7 +71,7 @@ const DashboardLayout = () => {
     "Dashboard";
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800">
+    <div className="w-full min-h-screen bg-slate-50 text-slate-800">
       <div className="relative flex h-screen">
         {!isDesktop && sidebarOpen && (
           <button
