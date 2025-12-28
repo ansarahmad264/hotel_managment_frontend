@@ -15,7 +15,7 @@ export const UpdateOrderApi = async (orderId, status) => {
   try {
     const response = await apiClient.patch(
       `/order/restaurant/${orderId}/status`,
-      { status }
+      status
     );
     return response.data;
   } catch (error) {

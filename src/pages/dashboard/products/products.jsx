@@ -16,14 +16,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { shortText } from "@/lib/utils";
@@ -33,10 +25,23 @@ import {
   GetProductsApi,
 } from "@/services/product/product.services";
 import { useAuthStore } from "@/store/auth.slice";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Upload, X, Image as ImageIcon, ArrowRight } from "lucide-react";
+import { Upload, X, Image as ImageIcon, Plus } from "lucide-react";
+
+const money = (v) => {
+  const n = typeof v === "string" ? parseFloat(v) : Number(v);
+  if (Number.isNaN(n)) return "$0.00";
+  return n.toLocaleString(undefined, { style: "currency", currency: "USD" });
+};
+
+const safeDate = (d) => {
+  if (!d) return "-";
+  const dt = new Date(d);
+  if (Number.isNaN(dt.getTime())) return "-";
+  return dt.toLocaleDateString();
+};
 
 const Products = () => {
   const navigate = useNavigate();
@@ -58,7 +63,7 @@ const Products = () => {
   const [imagePreview, setImagePreview] = useState("");
   const [editSubmitting, setEditSubmitting] = useState(false);
   const fileInputRef = useRef(null);
-  const previewObjectUrlRef = useRef(null); // to cleanup URL.createObjectURL
+  const previewObjectUrlRef = useRef(null);
 
   /* ================= FETCH ================= */
   useEffect(() => {
@@ -77,9 +82,19 @@ const Products = () => {
     fetchProducts();
   }, [user?.id]);
 
+  // Summary stats
+  const summary = useMemo(() => {
+    const totalProducts = products.length;
+    const totalValue = products.reduce(
+      (sum, p) => sum + (Number(p.price) || 0),
+      0
+    );
+    const avgPrice = totalProducts > 0 ? totalValue / totalProducts : 0;
+    return { totalProducts, totalValue, avgPrice };
+  }, [products]);
+
   /* ================= EDIT ================= */
   const handleEditOpen = (product) => {
-    // cleanup old preview url if any
     if (previewObjectUrlRef.current) {
       URL.revokeObjectURL(previewObjectUrlRef.current);
       previewObjectUrlRef.current = null;
@@ -102,7 +117,6 @@ const Products = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // cleanup old preview url if any
     if (previewObjectUrlRef.current) {
       URL.revokeObjectURL(previewObjectUrlRef.current);
       previewObjectUrlRef.current = null;
@@ -117,14 +131,12 @@ const Products = () => {
   const handleRemoveUploadedImage = () => {
     setEditImageFile(null);
 
-    // cleanup object url
     if (previewObjectUrlRef.current) {
       URL.revokeObjectURL(previewObjectUrlRef.current);
       previewObjectUrlRef.current = null;
     }
 
     if (fileInputRef.current) fileInputRef.current.value = "";
-    // fallback to original imageUrl
     setImagePreview(editFormData.imageUrl || "");
   };
 
@@ -165,8 +177,6 @@ const Products = () => {
       const res = await UpdateProductApi(editDialog.id, payload);
 
       if (res?.success) {
-        // If backend returns updated product in res.data, use it.
-        // Otherwise fallback to optimistic update.
         setProducts((prev) =>
           prev.map((p) =>
             p.id === editDialog.id
@@ -207,64 +217,203 @@ const Products = () => {
   };
 
   return (
-    <div className="space-y-6 mt-6">
-      {/* Header */}
-      <div className="flex justify-between items-center gap-3">
-        <div>
-          <p className="text-xs uppercase text-muted-foreground">Products</p>
-          <h2 className="text-xl font-semibold">Menu Manager</h2>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto max-w-7xl">
+        {/* Header */}
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+                Products
+              </h1>
+              <p className="mt-1 text-sm sm:text-base text-slate-600">
+                Manage your menu items and pricing
+              </p>
+            </div>
+            <Button
+              className="cursor-pointer bg-sky-600 text-white hover:bg-sky-700 shadow-lg w-full sm:w-auto"
+              onClick={() => navigate("/dashboard/products/add")}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Product
+            </Button>
+          </div>
+
+          {/* Summary chips */}
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+            <div className="rounded-full bg-white px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-slate-700 ring-1 ring-slate-200 shadow-sm">
+              Total Products: {summary.totalProducts}
+            </div>
+            <div className="rounded-full bg-emerald-50 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-emerald-700 ring-1 ring-emerald-100 shadow-sm">
+              Total Value: {money(summary.totalValue)}
+            </div>
+            <div className="rounded-full bg-sky-50 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-sky-700 ring-1 ring-sky-100 shadow-sm">
+              Avg Price: {money(summary.avgPrice)}
+            </div>
+          </div>
         </div>
-        <Button
-          className="cursor-pointer bg-sky-600 text-white hover:bg-sky-700"
-          onClick={() => navigate("/dashboard/products/add")}
-        >
-          <ArrowRight className="h-4 w-4 mr-2" />
-          Add Product
-        </Button>
-      </div>
 
-      {/* ================= DESKTOP TABLE (md+) ================= */}
-      <div className="hidden md:block border rounded-xl overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Image</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead className="text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
+        {/* ================= DESKTOP TABLE ================= */}
+        <div className="hidden lg:block overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-slate-200">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50">
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-700">
+                    Image
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-700">
+                    Name
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-700">
+                    Description
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-700">
+                    Price
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-700">
+                    Date
+                  </th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-700">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {loading ? (
+                  <tr>
+                    <td
+                      colSpan="6"
+                      className="px-6 py-12 text-center text-slate-500"
+                    >
+                      Loading...
+                    </td>
+                  </tr>
+                ) : products.length > 0 ? (
+                  products.map((item) => (
+                    <tr
+                      key={item.id}
+                      className="hover:bg-slate-50 transition-colors"
+                    >
+                      <td className="px-6 py-4">
+                        <img
+                          src={item.imageUrl}
+                          className="w-14 h-14 rounded-lg object-cover ring-2 ring-slate-200"
+                          alt={item.name}
+                        />
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="font-semibold text-slate-900">
+                          {item.name}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-slate-600">
+                          {shortText(item.description, 30)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="font-bold text-slate-900">
+                          {money(item.price)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-slate-600">
+                          {safeDate(item.createdAt)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditOpen(item)}
+                            className="hover:bg-sky-50 hover:text-sky-700 hover:border-sky-300"
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => setDeleteConfirm(item)}
+                            className="bg-rose-600 hover:bg-rose-700"
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="6"
+                      className="px-6 py-12 text-center text-slate-500"
+                    >
+                      No products found. Add your first product to get started.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-6">
-                  Loading...
-                </TableCell>
-              </TableRow>
-            ) : products.length > 0 ? (
-              products.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>
+        {/* ================= MOBILE CARDS ================= */}
+        <div className="grid gap-4 lg:hidden">
+          {loading ? (
+            <div className="rounded-xl bg-white p-8 text-center text-slate-500 shadow-lg ring-1 ring-slate-200">
+              Loading...
+            </div>
+          ) : products.length > 0 ? (
+            products.map((item) => (
+              <div
+                key={item.id}
+                className="overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-slate-200 transition-shadow hover:shadow-xl"
+              >
+                {/* Card header with image */}
+                <div className="border-b border-slate-200 bg-slate-50 p-4">
+                  <div className="flex items-start gap-4">
                     <img
                       src={item.imageUrl}
-                      className="w-10 h-10 rounded-full object-cover"
+                      className="w-20 h-20 rounded-lg object-cover ring-2 ring-slate-200 flex-shrink-0"
                       alt={item.name}
                     />
-                  </TableCell>
-                  <TableCell className="font-medium">{item.name}</TableCell>
-                  <TableCell>{shortText(item.description, 20)}</TableCell>
-                  <TableCell className="font-semibold">${item.price}</TableCell>
-                  <TableCell>
-                    {new Date(item.createdAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="text-right space-x-2">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-lg text-slate-900 truncate">
+                        {item.name}
+                      </h3>
+                      <p className="text-xs text-slate-600 mt-0.5">
+                        {safeDate(item.createdAt)}
+                      </p>
+                      <p className="mt-2 font-bold text-xl text-sky-600">
+                        {money(item.price)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card body */}
+                <div className="p-4 space-y-3">
+                  {/* Description */}
+                  {item.description && (
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">
+                        Description
+                      </p>
+                      <p className="text-sm text-slate-700">
+                        {item.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleEditOpen(item)}
+                      className="hover:bg-sky-50 hover:text-sky-700 hover:border-sky-300"
                     >
                       Edit
                     </Button>
@@ -272,83 +421,32 @@ const Products = () => {
                       size="sm"
                       variant="destructive"
                       onClick={() => setDeleteConfirm(item)}
+                      className="bg-rose-600 hover:bg-rose-700"
                     >
                       Delete
                     </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="text-center py-8 text-slate-500"
-                >
-                  No products found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* ================= MOBILE CARDS (<md) ================= */}
-      <div className="md:hidden space-y-3">
-        {loading ? (
-          <div className="p-6 text-center text-slate-500">Loading...</div>
-        ) : products.length > 0 ? (
-          products.map((item) => (
-            <div
-              key={item.id}
-              className="rounded-xl border border-slate-200 bg-white p-4 flex gap-4"
-            >
-              <img
-                src={item.imageUrl}
-                className="w-14 h-14 rounded-lg object-cover border"
-                alt={item.name}
-              />
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="font-semibold text-slate-900 truncate">
-                      {item.name}
-                    </div>
-                    <div className="text-xs text-slate-400">
-                      {new Date(item.createdAt).toLocaleDateString()}
-                    </div>
                   </div>
-                  <div className="font-bold text-slate-900">${item.price}</div>
-                </div>
-
-                <div className="mt-2 text-sm text-slate-600">
-                  {shortText(item.description, 50)}
-                </div>
-
-                <div className="mt-3 flex justify-end items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleEditOpen(item)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => setDeleteConfirm(item)}
-                  >
-                    Delete
-                  </Button>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="rounded-xl bg-white p-8 text-center shadow-lg ring-1 ring-slate-200">
+              <div className="mx-auto w-16 h-16 mb-4 rounded-full bg-slate-100 flex items-center justify-center">
+                <ImageIcon className="w-8 h-8 text-slate-400" />
+              </div>
+              <p className="text-slate-500 mb-4">
+                No products found. Add your first product to get started.
+              </p>
+              <Button
+                onClick={() => navigate("/dashboard/products/add")}
+                className="bg-sky-600 hover:bg-sky-700"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Product
+              </Button>
             </div>
-          ))
-        ) : (
-          <div className="p-6 text-center text-slate-500">
-            No products found. Add your first product.
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* ================= EDIT DIALOG ================= */}
@@ -356,102 +454,133 @@ const Products = () => {
         open={!!editDialog}
         onOpenChange={(open) => (open ? null : closeEditDialog())}
       >
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Product</DialogTitle>
           </DialogHeader>
 
           <form onSubmit={handleEditSubmit} className="space-y-4">
-            <Input
-              value={editFormData.name}
-              onChange={(e) =>
-                setEditFormData({ ...editFormData, name: e.target.value })
-              }
-              placeholder="Name"
-              required
-            />
-
-            <Textarea
-              value={editFormData.description}
-              onChange={(e) =>
-                setEditFormData({
-                  ...editFormData,
-                  description: e.target.value,
-                })
-              }
-              placeholder="Description"
-            />
-
-            <Input
-              type="number"
-              step="0.01"
-              value={editFormData.price}
-              onChange={(e) =>
-                setEditFormData({ ...editFormData, price: e.target.value })
-              }
-              required
-            />
-
-            {/* IMAGE UPLOAD */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-4 my-2">
-                {imagePreview ? (
-                  <div className="relative">
-                    <img
-                      src={imagePreview}
-                      className="w-20 h-20 rounded-lg object-cover border"
-                      alt="Preview"
-                    />
-                    {editImageFile ? (
-                      <button
-                        type="button"
-                        onClick={handleRemoveUploadedImage}
-                        className="absolute -top-2 -right-2 rounded-full bg-white border shadow p-1"
-                        title="Remove uploaded image"
-                      >
-                        <X className="h-4 w-4 text-red-500" />
-                      </button>
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className="w-20 h-20 rounded-lg bg-muted flex items-center justify-center border">
-                    <ImageIcon className="text-muted-foreground" />
-                  </div>
-                )}
-
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                />
-              </div>
-
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full"
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Image
-              </Button>
+            <div>
+              <label className="text-sm font-medium text-slate-700 mb-1.5 block">
+                Product Name
+              </label>
+              <Input
+                value={editFormData.name}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, name: e.target.value })
+                }
+                placeholder="Enter product name"
+                required
+              />
             </div>
 
-            <DialogFooter>
-              <Button type="submit" disabled={editSubmitting}>
-                {editSubmitting ? "Updating..." : "Update"}
-              </Button>
-              <Button variant="outline" type="button" onClick={closeEditDialog}>
+            <div>
+              <label className="text-sm font-medium text-slate-700 mb-1.5 block">
+                Description
+              </label>
+              <Textarea
+                value={editFormData.description}
+                onChange={(e) =>
+                  setEditFormData({
+                    ...editFormData,
+                    description: e.target.value,
+                  })
+                }
+                placeholder="Enter product description"
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-700 mb-1.5 block">
+                Price
+              </label>
+              <Input
+                type="number"
+                step="0.01"
+                value={editFormData.price}
+                onChange={(e) =>
+                  setEditFormData({ ...editFormData, price: e.target.value })
+                }
+                placeholder="0.00"
+                required
+              />
+            </div>
+
+            {/* IMAGE UPLOAD */}
+            <div>
+              <label className="text-sm font-medium text-slate-700 mb-1.5 block">
+                Product Image
+              </label>
+              <div className="space-y-3">
+                <div className="flex items-center gap-4">
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img
+                        src={imagePreview}
+                        className="w-24 h-24 rounded-lg object-cover ring-2 ring-slate-200"
+                        alt="Preview"
+                      />
+                      {editImageFile && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveUploadedImage}
+                          className="absolute -top-2 -right-2 rounded-full bg-white border-2 border-rose-500 shadow-lg p-1 hover:bg-rose-50 transition-colors"
+                          title="Remove uploaded image"
+                        >
+                          <X className="h-4 w-4 text-rose-500" />
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="w-24 h-24 rounded-lg bg-slate-100 flex items-center justify-center ring-2 ring-slate-200">
+                      <ImageIcon className="w-8 h-8 text-slate-400" />
+                    </div>
+                  )}
+
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                  />
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full"
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  {imagePreview ? "Change Image" : "Upload Image"}
+                </Button>
+              </div>
+            </div>
+
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={closeEditDialog}
+                disabled={editSubmitting}
+              >
                 Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={editSubmitting}
+                className="bg-sky-600 hover:bg-sky-700"
+              >
+                {editSubmitting ? "Updating..." : "Update Product"}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* ================= DELETE ================= */}
+      {/* ================= DELETE DIALOG ================= */}
       <AlertDialog
         open={!!deleteConfirm}
         onOpenChange={() => setDeleteConfirm(null)}
@@ -460,11 +589,12 @@ const Products = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Product?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete{" "}
+              Are you sure you want to delete{" "}
               <span className="font-semibold text-slate-900">
                 {deleteConfirm?.name}
               </span>
-              . This action cannot be undone.
+              ? This action cannot be undone and the product will be permanently
+              removed from your menu.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -472,9 +602,9 @@ const Products = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-rose-600 hover:bg-rose-700"
             >
-              Delete
+              Delete Product
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

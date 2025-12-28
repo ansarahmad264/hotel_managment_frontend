@@ -69,6 +69,8 @@ const Home = () => {
     },
   ];
 
+  console.log("orderss--", orders);
+
   return (
     <div className="space-y-8">
       {/* 1. KEY STATS SECTION */}
@@ -101,46 +103,67 @@ const Home = () => {
           </div>
 
           <div className="divide-y divide-slate-100">
-            {/* Mapping through orders instead of products */}
-            {[].map((order) => (
-              <div
-                key={order.id}
-                className="flex items-center justify-between gap-3 py-4 text-sm"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold text-slate-900">
-                      Order #{order.id.slice(-5)}
-                    </p>
-                    <span className="text-[10px] text-slate-400">
-                      • {order.time || "Just now"}
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500">
-                    {order.customerName} • {order.itemCount} items
-                  </p>
-                </div>
+            {/* Mapping through orders */}
+            {loading ? (
+              <div className="text-center py-8 text-slate-500">Loading...</div>
+            ) : orders.length > 0 ? (
+              orders.slice(0, 5).map((order) => {
+                const itemsCount = Array.isArray(order?.items)
+                  ? order.items.reduce(
+                      (sum, it) => sum + (Number(it.quantity) || 0),
+                      0
+                    )
+                  : 0;
 
-                <div className="text-right space-y-1">
-                  <p className="font-bold text-slate-900 text-base">
-                    ${order.totalAmount}
-                  </p>
-                  {/* Status Badge */}
-                  <span
-                    className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider 
-            ${
-              order.status === "Completed"
-                ? "bg-emerald-50 text-emerald-600"
-                : order.status === "Pending"
-                ? "bg-amber-50 text-amber-600"
-                : "bg-blue-50 text-blue-600"
-            }`}
+                return (
+                  <div
+                    key={order.id}
+                    className="flex items-center justify-between gap-3 py-4 text-sm"
                   >
-                    {order.status}
-                  </span>
-                </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-slate-900">
+                          Order #{order.id}
+                        </p>
+                        <span className="text-[10px] text-slate-400">
+                          • {new Date(order.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        {order.user?.name || "Customer"} • {itemsCount} items
+                      </p>
+                    </div>
+
+                    <div className="text-right space-y-1">
+                      <p className="font-bold text-slate-900 text-base">
+                        ${order.totalPrice}
+                      </p>
+                      {/* Status Badge */}
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider 
+            ${
+              order.status === "DELIVERED"
+                ? "bg-emerald-50 text-emerald-600"
+                : order.status === "PENDING"
+                ? "bg-amber-50 text-amber-600"
+                : order.status === "CONFIRMED"
+                ? "bg-sky-50 text-sky-600"
+                : order.status === "CANCELLED"
+                ? "bg-rose-50 text-rose-600"
+                : "bg-slate-50 text-slate-600"
+            }`}
+                      >
+                        {order.status}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-center py-8 text-slate-500">
+                No recent orders
               </div>
-            ))}
+            )}
           </div>
 
           <button
@@ -162,9 +185,9 @@ const Home = () => {
           </div>
           <div className="divide-y divide-slate-100">
             {loading ? (
-              <div className="text-center min-h-52">Loading...</div>
-            ) : (
-              products.map((item) => (
+              <div className="text-center py-8 text-slate-500">Loading...</div>
+            ) : products.length > 0 ? (
+              products.slice(0, 5).map((item) => (
                 <div
                   key={item.name}
                   className="flex items-center justify-between gap-3 py-4 text-sm"
@@ -176,10 +199,14 @@ const Home = () => {
                     </p>
                   </div>
                   <p className="font-bold text-slate-900 text-base">
-                    {item.price + "€"}
+                    ${item.price}
                   </p>
                 </div>
               ))
+            ) : (
+              <div className="text-center py-8 text-slate-500">
+                No products found
+              </div>
             )}
           </div>
           <button
