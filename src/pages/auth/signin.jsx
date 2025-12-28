@@ -47,7 +47,9 @@ const SignInPage = () => {
         setUser(response?.data?.restaurant);
         toast.success(response.message || "Login successful!");
       } else {
-        toast.error(response?.message || "Login failed");
+        toast.error(
+          response?.message + "! " + response?.errors?.[0] || "Login failed"
+        );
       }
     } catch (error) {
       console.log("error.errors?.[0]00", error.errors?.[0]);
