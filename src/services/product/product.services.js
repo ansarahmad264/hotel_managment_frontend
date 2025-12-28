@@ -3,7 +3,7 @@ import { apiClient } from "@/config";
 // Add Product Api Service
 export const AddProductApi = async (id, form) => {
   try {
-    const response = await apiClient.post(`/add-item/${id}`, form, {
+    const response = await apiClient.post(`/restaurant/add-item/${id}`, form, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return response.data;
@@ -15,7 +15,7 @@ export const AddProductApi = async (id, form) => {
 // Add Product Api Service
 export const GetProductsApi = async (restauarantId, limit) => {
   try {
-    let endpoint = `/products/${restauarantId}`;
+    let endpoint = `/restaurant/products/${restauarantId}`;
     if (limit) {
       endpoint += `?limit=${limit}`;
     }
@@ -29,7 +29,9 @@ export const GetProductsApi = async (restauarantId, limit) => {
 // Add Product Api Service
 export const GetProductApi = async (id, restauarantId) => {
   try {
-    const response = await apiClient.get(`/product/${id}/${restauarantId}`);
+    const response = await apiClient.get(
+      `/restaurant/product/${id}/${restauarantId}`
+    );
     return response.data;
   } catch (error) {
     return error.response ? error.response.data : null;
@@ -39,7 +41,7 @@ export const GetProductApi = async (id, restauarantId) => {
 // Add Product Api Service
 export const DeleteProductApi = async (id) => {
   try {
-    const response = await apiClient.delete(`/delete/${id}`);
+    const response = await apiClient.delete(`/restaurant/delete/${id}`);
     return response.data;
   } catch (error) {
     return error.response ? error.response.data : null;
@@ -49,7 +51,7 @@ export const DeleteProductApi = async (id) => {
 // Add Product Api Service
 export const UpdateProductApi = async (id, form) => {
   try {
-    const response = await apiClient.put(`/update-item/${id}`, form);
+    const response = await apiClient.put(`/restaurant/update-item/${id}`, form);
     return response.data;
   } catch (error) {
     return error.response ? error.response.data : null;
